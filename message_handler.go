@@ -1,0 +1,116 @@
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"image"
+	"io"
+	"log"
+	"net/http"
+	"strings"
+	"time"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+)
+
+func fetchImage(imageUrl string) ([]byte, error) {
+	resp, err := http.Get(imageUrl)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	return body, nil
+}
+
+func HandleMessage(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
+	var response string
+	var err error
+
+	if message.Command() != "" {
+		response, err = handleCommand(message)
+	} else if len(message.Photo) > 0 {
+		response, err = handleImage(bot, message)
+	} else {
+		response, err = handleTextMessage(message)
+	}
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	msg := tgbotapi.NewMessage(message.Chat.ID, response)
+	if _, err := bot.Send(msg); err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func handleTextMessage(message *tgbotapi.Message) (string, error) {
+	spending := Spending{name: "Groceries", amount: 31.24, date: time.Now().Unix(), currency: "EUR"}
+	spendings.Add(&spending)
+
+	return fmt.Sprintf("Spent in total: %.2f", spendings.TotalAmount()), nil
+}
+
+func handleImage(bot *tgbotapi.BotAPI, message *tgbotapi.Message) (string, error) {
+	fmt.Println("Image received")
+	photos := message.Photo
+
+	imageUrl, err := bot.GetFileDirectURL(photos[len(photos)-1].FileID)
+	if err != nil {
+		return "", err
+	}
+
+	if !strings.HasSuffix(imageUrl, ".jpg") && !strings.HasSuffix(imageUrl, ".jpeg") {
+		return "", fmt.Errorf("unsupported file type")
+	}
+
+	imageBytes, err := fetchImage(imageUrl)
+	if err != nil {
+		return "", err
+	}
+
+	fmt.Println(imageBytes[0:100])
+
+	img, _, err := image.Decode(bytes.NewReader(imageBytes))
+	if err != nil {
+		return "", err
+	}
+
+	fmt.Println(img)
+
+	return "Image was processed", nil
+}
+
+func handleCommand(message *tgbotapi.Message) (string, error) {
+	command := message.Command()
+	argString := message.CommandArguments()
+
+	switch command {
+	case "configure":
+		args := strings.Split(argString, " ")
+		if len(args) != 2 {
+			return "", fmt.Errorf("invalid args length")
+		}
+
+		fmt.Printf("%s = %s", args[0], args[1])
+		configuration.Set(args[0], args[1])
+		err := configuration.Save()
+		if err != nil {
+			return "", err
+		}
+
+		return "Configuration changed", nil
+	case "show":
+		return fmt.Sprint(configuration), nil
+	case "about":
+		return "Spending tracker bot", nil
+	default:
+		return "Invalid command", nil
+	}
+}
