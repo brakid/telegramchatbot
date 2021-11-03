@@ -41,7 +41,7 @@ func HandleMessage(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
 	}
 
 	if err != nil {
-		log.Fatalln(err)
+		response = fmt.Sprintf("Error: %v", err)
 	}
 
 	msg := tgbotapi.NewMessage(message.Chat.ID, response)
@@ -51,7 +51,13 @@ func HandleMessage(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
 }
 
 func handleTextMessage(message *tgbotapi.Message) (string, error) {
-	spending := Spending{name: "Groceries", amount: 31.24, date: time.Now().Unix(), currency: "EUR"}
+	name, amount, currency, err := Extract(message.Text)
+
+	if err != nil {
+		return "", err
+	}
+
+	spending := Spending{name: name, amount: amount, date: time.Now().Unix(), currency: currency}
 	spendings.Add(&spending)
 
 	return fmt.Sprintf("Spent in total: %.2f", spendings.TotalAmount()), nil
