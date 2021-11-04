@@ -32,7 +32,7 @@ func parseAmount(value string) (float32, error) {
 }
 
 func Extract(s string) (string, float32, string, error) {
-	r := regexp.MustCompile(`(?P<Name>.+) +(?P<Amount>\d+((.|,)\d+)?) *(?P<Currency>€|EUR)?`)
+	r := regexp.MustCompile(`(?P<Name>.+) +(?P<Amount>\d+((\.|,)\d+)?) *(?P<Currency>€|EUR)?`)
 	matches := getMatches(r.FindStringSubmatch(s), r.SubexpNames())
 
 	fmt.Println(matches)

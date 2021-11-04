@@ -57,10 +57,20 @@ func handleTextMessage(message *tgbotapi.Message) (string, error) {
 		return "", err
 	}
 
-	spending := Spending{name: name, amount: amount, date: time.Now().Unix(), currency: currency}
-	spendings.Add(&spending)
+	spending := Spending{Name: name, Amount: amount, Date: time.Now(), Currency: currency}
+	err = spendings.Add(&spending)
 
-	return fmt.Sprintf("Spent in total: %.2f", spendings.TotalAmount()), nil
+	if err != nil {
+		return "", err
+	}
+
+	total, err := spendings.TotalAmount()
+
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("Spent in total: %.2f", total), nil
 }
 
 func handleImage(bot *tgbotapi.BotAPI, message *tgbotapi.Message) (string, error) {
@@ -116,6 +126,18 @@ func handleCommand(message *tgbotapi.Message) (string, error) {
 		return fmt.Sprint(configuration), nil
 	case "about":
 		return "Spending tracker bot", nil
+	case "start":
+		return "Spending tracker bot", nil
+	case "spendings":
+		{
+			spendingValues, err := spendings.AllSpendings()
+
+			if err != nil {
+				return "", err
+			}
+
+			return fmt.Sprintf("Spendings: %v", spendingValues), nil
+		}
 	default:
 		return "Invalid command", nil
 	}
