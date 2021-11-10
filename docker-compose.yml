@@ -2,7 +2,7 @@
 version: "3.9"
 
 services:
-  database:
+  spendingdb:
     image: mysql
     command: --default-authentication-plugin=mysql_native_password
     ports:
@@ -11,6 +11,17 @@ services:
       - mysql-data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: test
+  spendingbot:
+    image: spendingbot
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment: 
+      BOT_API_KEY: ${BOT_API_KEY}
+      CHAT_ID: ${CHAT_ID}
+      MYSQL_URL: root:test@tcp(spendingdb:3306)/spendings
+    depends_on: 
+      - spendingdb
 
 volumes:
   mysql-data:

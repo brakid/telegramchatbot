@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"time"
 
 	"gorm.io/driver/mysql"
@@ -36,16 +37,47 @@ func (s *Spendings) Add(spending *Spending) error {
 	return nil
 }
 
-func (s *Spendings) AllSpendings() (*[]Spending, error) {
+func (s *Spendings) Get(id uint) (*Spending, error) {
+	var spending Spending
+	result := s.db.First(&spending, id)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &spending, nil
+}
+
+func (s *Spendings) Delete(id uint) error {
+	var spending Spending
+	result := s.db.Delete(&spending, id)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
+func (s *Spendings) Update(spending *Spending) error {
+	result := s.db.Save(spending)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	log.Println("Updated spending")
+
+	return nil
+}
+
+func (s *Spendings) AllSpendings(year int, month time.Month) (*[]Spending, error) {
 	var spendings []Spending
 
-	now := time.Now()
-	currentYear, currentMonth, _ := now.Date()
-
-	firstOfMonth := time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, now.Location())
+	firstOfMonth := time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)
 	firstOfNextMonth := firstOfMonth.AddDate(0, 1, 0)
 
-	result := s.db.Where("date >= ? and date < ?", firstOfMonth, firstOfNextMonth).Find(&spendings)
+	result := s.db.Where("date >= ? and date < ?", firstOfMonth, firstOfNextMonth).Order("date ASC").Find(&spendings)
 
 	if result.Error != nil {
 		return nil, result.Error
@@ -54,23 +86,9 @@ func (s *Spendings) AllSpendings() (*[]Spending, error) {
 	return &spendings, nil
 }
 
-func (s *Spendings) TotalAmount() (float32, error) {
-	spendings, err := s.AllSpendings()
-
-	if err != nil {
-		return 0.0, err
-	}
-
-	var sum float32
-	for _, spending := range *spendings {
-		sum += spending.Amount
-	}
-
-	return sum, nil
-}
-
 func createDb() *gorm.DB {
-	db, err := gorm.Open(mysql.Open("root:test@/spendings?parseTime=true"), &gorm.Config{})
+	dbUrl := os.Getenv("MYSQL_URL")
+	db, err := gorm.Open(mysql.Open(dbUrl+"?parseTime=true"), &gorm.Config{})
 	if err != nil {
 		log.Fatalln(err)
 	}
