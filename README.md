@@ -3,10 +3,12 @@
 This chatbot tracks your spendings in a given month and lists the spent amount of you ask for it.
 Currently new spendings can be sent via text messages, however uploading receipts to automatically ingest spendings is planned.
 
+![Screenshot: Spending Bot](./images/spendingbot.png)
+
 The bot supports a single user only (the current datamodel does not have a concept of users) + the spendings are free text in the DB.
 
 ## Chatbot environment
-The Chatbot runs on [Telegram](https://core.telegram.org/bots): https://t.me/BrakidTestBot and uses the Golang [telegram-bot-api](https://github.com/go-telegram-bot-api/telegram-bot-api) library to power the bot.
+The Chatbot runs on [Telegram](https://core.telegram.org/bots): https://t.me/BrakidSpendingBot and uses the Golang [telegram-bot-api](https://github.com/go-telegram-bot-api/telegram-bot-api) library to power the bot.
 
 The bot itself uses a [MySQL](https://www.mysql.com) database to store and retrieve spendings and sends them back to the registered user (currently the app supports a single user only. The user is determined by the Chat ID that needs to be set as an environment variable (**TODO: add multiuser support**).
 The [Gorm](https://gorm.io/index.html) library is used to map Golang structs to a relational database - Gorm is an [Object-Relational Mapping](https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping) (ORM) library that supports multiple Relational Database Management Systems (RDBMS) such as MySQL, PostgreSQL or SQLite.
