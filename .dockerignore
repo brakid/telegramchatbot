@@ -2,3 +2,4 @@
 *.yml
 .DS_Store
 Dockerfile
+README.md
