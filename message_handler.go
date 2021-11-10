@@ -24,7 +24,9 @@ func HandleMessage(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
 	}
 
 	msg := tgbotapi.NewMessage(message.Chat.ID, response)
-	msg.ParseMode = tgbotapi.ModeHTML
+	if err == nil {
+		msg.ParseMode = tgbotapi.ModeHTML
+	}
 
 	if _, err := bot.Send(msg); err != nil {
 		log.Fatalln(err)

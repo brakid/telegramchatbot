@@ -3,8 +3,10 @@
 This chatbot tracks your spendings in a given month and lists the spent amount of you ask for it.
 Currently new spendings can be sent via text messages, however uploading receipts to automatically ingest spendings is planned.
 
-![Screenshot: Spending Bot](./images/spendingbot.png)
-
+<p align="center">
+<img src='./images/spendingbot.png' alt='Screenshot: Spending Bot' width='350px' />
+</p>
+  
 The bot supports a single user only (the current datamodel does not have a concept of users) + the spendings are free text in the DB.
 
 ## Chatbot environment
